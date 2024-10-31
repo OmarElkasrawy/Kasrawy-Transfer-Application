@@ -5,7 +5,7 @@ import os
 
 # Server settings
 SERVER_HOST = '127.0.0.1'
-SERVER_PORT = 12345
+SERVER_PORT = 57329
 
 # File paths for storing user data
 USER_CREDENTIALS = "user_data.txt"

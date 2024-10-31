@@ -2,7 +2,7 @@ import socket
 
 # Server settings
 SERVER_HOST = '127.0.0.1'
-SERVER_PORT = 12345
+SERVER_PORT = 57329
 
 # Create a TCP socket
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
