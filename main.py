@@ -13,6 +13,7 @@ PERSONAL_DETAILS_FILE = "personal_data.txt"
 TRANSFER_LOG = "transfers.txt"
 
 active_user = None  # Track the currently logged-in user
+is_admin = False  # Track if the logged-in user is an admin
 
 # Connect to the server
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -153,16 +154,42 @@ def open_transfer_interface():
     submit_button = tk.Button(sender_screen, text="Submit Transfer", command=process_transfer)
     submit_button.grid(row=2, columnspan=2)
 
-    # Receiver interface
+    # Receiver interface - show full log only if the user is an admin
     global receiver_screen, transfer_label
     receiver_screen = tk.Tk()
     receiver_screen.title("Money Transfer - Receiver")
-    
+
     transfer_label = tk.Label(receiver_screen, text="Transfer Log:")
     transfer_label.pack()
 
-    view_button = tk.Button(receiver_screen, text="View Transfers", command=view_transfers)
+    view_button = tk.Button(receiver_screen, text="View Transfers", command=show_transfers if is_admin else show_user_transfers)
     view_button.pack()
+
+def show_transfers():
+    """Display full transaction log for admin."""
+    if os.path.exists(TRANSFER_LOG):
+        with open(TRANSFER_LOG, "r") as file:
+            transfers = file.readlines()
+            display_text = "Complete Transfer History:\n"
+            for line in transfers:
+                display_text += line
+            transfer_label.config(text=display_text)
+    else:
+        transfer_label.config(text="No transfer data available.")
+
+def show_user_transfers():
+    """Display only the user's transfers."""
+    if os.path.exists(TRANSFER_LOG):
+        with open(TRANSFER_LOG, "r") as file:
+            transfers = file.readlines()
+            display_text = f"Transfer History for {active_user}:\n"
+            for line in transfers:
+                sender, account, amount = line.strip().split(",")
+                if sender == active_user:
+                    display_text += f"{sender} sent {amount} to account {account}\n"
+            transfer_label.config(text=display_text)
+    else:
+        transfer_label.config(text="No transfer data available.")
     
 def open_register_screen():
     global register_screen, username_entry_register, password_entry_register
