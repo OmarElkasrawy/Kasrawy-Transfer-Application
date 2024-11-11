@@ -2,6 +2,8 @@ import tkinter as tk
 from tkinter import messagebox
 from hashing_utils import hash_password
 from hashing_utils import verify_password
+from AES_utils import encrypt_data
+from AES_utils import decrypt_data
 import socket
 import os
 
@@ -37,20 +39,26 @@ def register_user():
     country = country_entry.get()
     
     if username and password and ssn and address and phone and country:
-        # Hash the password before storing it
+        # Hash the password
         hashed_password = hash_password(password)
         
-        # Store user credentials in user_data.txt
+        # Encrypt personal details
+        encrypted_ssn = encrypt_data(ssn)
+        encrypted_address = encrypt_data(address)
+        encrypted_phone = encrypt_data(phone)
+        encrypted_country = encrypt_data(country)
+        
+        # Store user credentials
         with open(USER_CREDENTIALS, "a") as file:
             file.write(f"{username},{hashed_password}\n")
         
-        # Store personal details in personal_data.txt
+        # Store encrypted personal details
         with open(PERSONAL_DETAILS_FILE, "a") as file:
-            file.write(f"{username},{ssn},{address},{phone},{country}\n")
+            file.write(f"{username},{encrypted_ssn},{encrypted_address},{encrypted_phone},{encrypted_country}\n")
         
         messagebox.showinfo("Success", "Registration successful!")
         send_to_server(f"User registered: {username}")
-        register_screen.destroy()  # Close the registration window
+        register_screen.destroy()
     else:
         messagebox.showerror("Error", "All fields are required.")
 
@@ -85,8 +93,14 @@ def show_personal_details():
     if active_user:
         with open(PERSONAL_DETAILS_FILE, "r") as file:
             for record in file:
-                username, ssn, address, phone, country = record.strip().split(",")
+                username, encrypted_ssn, encrypted_address, encrypted_phone, encrypted_country = record.strip().split(",")
                 if username == active_user:
+                    # Decrypt personal details
+                    ssn = decrypt_data(encrypted_ssn)
+                    address = decrypt_data(encrypted_address)
+                    phone = decrypt_data(encrypted_phone)
+                    country = decrypt_data(encrypted_country)
+                    
                     # Display details in a new window
                     details_window = tk.Tk()
                     details_window.title(f"{active_user}'s Personal Details")
