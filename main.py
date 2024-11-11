@@ -1,5 +1,7 @@
 import tkinter as tk
 from tkinter import messagebox
+from hashing_utils import hash_password
+from hashing_utils import verify_password
 import socket
 import os
 
@@ -35,11 +37,14 @@ def register_user():
     country = country_entry.get()
     
     if username and password and ssn and address and phone and country:
-        # Store user credentials
-        with open(USER_CREDENTIALS, "a") as file:
-            file.write(f"{username},{password}\n")
+        # Hash the password before storing it
+        hashed_password = hash_password(password)
         
-        # Store personal details
+        # Store user credentials in user_data.txt
+        with open(USER_CREDENTIALS, "a") as file:
+            file.write(f"{username},{hashed_password}\n")
+        
+        # Store personal details in personal_data.txt
         with open(PERSONAL_DETAILS_FILE, "a") as file:
             file.write(f"{username},{ssn},{address},{phone},{country}\n")
         
@@ -55,17 +60,22 @@ def login_user():
     password = password_entry_login.get()
     
     if username and password:
-        # Validate credentials
+        # Open user_data.txt and check if the username and hashed password match
         with open(USER_CREDENTIALS, "r") as file:
             for record in file:
-                user, pwd = record.strip().split(",")
-                if username == user and password == pwd:
-                    active_user = username  # Set active user
-                    messagebox.showinfo("Success", "Login successful!")
-                    send_to_server(f"User logged in: {username}")
-                    login_screen.destroy()  # Close login window
-                    open_post_login_options()
-                    return
+                stored_username, stored_hashed_password = record.strip().split(",")
+                if username == stored_username:
+                    # Verify the entered password with the stored hashed password
+                    if verify_password(stored_hashed_password, password):
+                        active_user = username  # Set active user
+                        messagebox.showinfo("Success", "Login successful!")
+                        send_to_server(f"User logged in: {username}")
+                        login_screen.destroy()  # Close login window
+                        open_post_login_options()
+                        return
+                    else:
+                        messagebox.showerror("Error", "Incorrect username or password.")
+                        return
         messagebox.showerror("Error", "Incorrect username or password.")
     else:
         messagebox.showerror("Error", "All fields are required.")

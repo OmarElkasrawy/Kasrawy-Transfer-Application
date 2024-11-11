@@ -1,2 +1,4 @@
 newomar,54798264823,center,123456789,egypt
 admin,016745879,cairo,0987654321,egypt
+omarali,159483765,street 1,0123456789,india
+hashomar,1212121,212121,212112,egypt

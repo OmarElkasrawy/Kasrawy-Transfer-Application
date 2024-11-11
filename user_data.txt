@@ -4,3 +4,5 @@ test,123
 test,test
 newomar,123
 admin,101
+omarali,12345
+hashomar,0339b6fe92e2e8dfa26966958e040289:da6e4dcf0f74f39a83ee2f68b533be25358de9706bbac76e1ee05da6568bad5d
