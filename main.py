@@ -4,6 +4,9 @@ from hashing_utils import hash_password
 from hashing_utils import verify_password
 from AES_utils import encrypt_data
 from AES_utils import decrypt_data
+from RSA_utils import encrypt_data_with_rsa
+from RSA_utils import decrypt_data_with_rsa
+import base64
 import socket
 import os
 
@@ -29,6 +32,14 @@ def send_to_server(message):
         client_socket.sendall(message.encode())
     except Exception as e:
         print("Failed to send message to server:", e)
+
+def is_base64_encoded(data: str) -> bool:
+    try:
+        # Attempt to decode from base64 and check if it can be re-encoded
+        return base64.b64encode(base64.b64decode(data)).decode() == data
+    except Exception as e:
+        print(f"Failed base64 check: {e}")
+        return False
 
 def register_user():
     username = username_entry_register.get()
@@ -138,11 +149,23 @@ def process_transfer():
     
     if account_id and transfer_amount and active_user:
         try:
-            # Log transfer data
+            # Load the RSA public key
+            with open("public_key.pem", "rb") as pub_file:
+                public_key = pub_file.read()
+            
+            # Encrypt transfer data
+            transfer_data = f"{active_user},{account_id},{transfer_amount}"
+            encrypted_transfer = encrypt_data_with_rsa(transfer_data, public_key)
+            
+            # Debug: Print the encrypted transfer data before saving
+            print("Encrypted transfer (base64):", encrypted_transfer)
+            
+            # Log the encrypted transfer to transfers.txt
             with open(TRANSFER_LOG, "a") as file:
-                file.write(f"{active_user},{account_id},{transfer_amount}\n")
+                file.write(f"{encrypted_transfer}\n")
+            
             messagebox.showinfo("Success", "Transfer recorded successfully.")
-            send_to_server(f"Transfer submitted by {active_user}: {transfer_amount} to account {account_id}")
+            send_to_server(f"Transfer submitted by {active_user}")
         except Exception as e:
             messagebox.showerror("Error", f"Transfer failed: {e}")
     else:
@@ -150,14 +173,45 @@ def process_transfer():
 
 def view_transfers():
     if os.path.exists(TRANSFER_LOG):
-        # Display transfer history
-        with open(TRANSFER_LOG, "r") as file:
-            transfer_data = file.readlines()
-            history_text = "Transfer Log:\n"
-            for entry in transfer_data:
-                user, account, amount = entry.strip().split(",")
-                history_text += f"{user} sent {amount} to account {account}\n"
-            transfer_label.config(text=history_text)
+        try:
+            # Load the RSA private key
+            with open("private_key.pem", "rb") as priv_file:
+                private_key = priv_file.read()
+
+            # Read and decrypt each transfer record
+            with open(TRANSFER_LOG, "r") as file:
+                transfers = file.readlines()
+                history_text = "Transfer Log:\n"
+                
+                for entry in transfers:
+                    entry = entry.strip()  # Clean up any whitespace
+                    print(f"Processing entry: {entry}")
+
+                    # Check if entry is base64-encoded (encrypted) or plaintext
+                    if is_base64_encoded(entry):
+                        print("Entry is detected as base64-encoded, attempting to decrypt...")
+                        # If encrypted, decrypt it
+                        try:
+                            decrypted_entry = decrypt_data_with_rsa(entry, private_key)
+                            sender, account, amount = decrypted_entry.split(',')
+                            history_text += f"{sender} sent {amount} to account {account}\n"
+                        except Exception as e:
+                            print(f"Decryption failed for entry: {entry}, error: {e}")
+                            continue  # Skip this entry if decryption fails
+                    else:
+                        print("Entry detected as plaintext, processing without decryption...")
+                        # If plaintext, handle it directly
+                        try:
+                            sender, account, amount = entry.split(',')
+                            history_text += f"{sender} sent {amount} to account {account}\n"
+                        except ValueError as ve:
+                            print(f"Invalid format for plaintext entry: {entry}, error: {ve}")
+                            continue  # Skip this entry if it has an invalid format
+                
+                transfer_label.config(text=history_text)
+        except Exception as e:
+            print(f"Failed to load transfer logs: {e}")
+            transfer_label.config(text=f"Failed to load transfer logs: {e}")
     else:
         transfer_label.config(text="No transfer records found.")
 
@@ -204,16 +258,32 @@ def show_transfers():
 def show_user_transfers():
     """Display only the user's transfers."""
     if os.path.exists(TRANSFER_LOG):
-        with open(TRANSFER_LOG, "r") as file:
-            transfers = file.readlines()
-            display_text = f"Transfer History for {active_user}:\n"
-            for line in transfers:
-                sender, account, amount = line.strip().split(",")
-                if sender == active_user:
-                    display_text += f"{sender} sent {amount} to account {account}\n"
-            transfer_label.config(text=display_text)
+        try:
+            # Load the RSA private key
+            with open("private_key.pem", "rb") as priv_file:
+                private_key = priv_file.read()
+
+            # Read and decrypt each transfer record
+            with open(TRANSFER_LOG, "r") as file:
+                transfers = file.readlines()
+                display_text = f"Transfer History for {active_user}:\n"
+                
+                for encrypted_entry in transfers:
+                    encrypted_entry = encrypted_entry.strip()
+                    decrypted_entry = decrypt_data_with_rsa(encrypted_entry, private_key)
+                    
+                    # Split the decrypted entry into sender, account, and amount
+                    sender, account, amount = decrypted_entry.split(',')
+                    
+                    # Display only the current user's transfers
+                    if sender == active_user:
+                        display_text += f"{sender} sent {amount} to account {account}\n"
+                
+                transfer_label.config(text=display_text)
+        except Exception as e:
+            transfer_label.config(text=f"Failed to load transfer logs: {e}")
     else:
-        transfer_label.config(text="No transfer data available.")
+        transfer_label.config(text="No transfer records found.")
     
 def open_register_screen():
     global register_screen, username_entry_register, password_entry_register
