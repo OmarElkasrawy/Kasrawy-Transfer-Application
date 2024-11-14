@@ -219,7 +219,7 @@ def open_transfer_interface():
     # Sender interface
     global sender_screen, account_entry, amount_entry
     sender_screen = tk.Tk()
-    sender_screen.title(f"Money Transfer - Sender ({active_user})")
+    sender_screen.title(f"Kasrawy Transfer - Sender ({active_user})")
     
     tk.Label(sender_screen, text="Account Number:").grid(row=0, column=0)
     account_entry = tk.Entry(sender_screen)
@@ -235,7 +235,7 @@ def open_transfer_interface():
     # Receiver interface - show full log only if the user is an admin
     global receiver_screen, transfer_label
     receiver_screen = tk.Tk()
-    receiver_screen.title("Money Transfer - Receiver")
+    receiver_screen.title("Kasrawy Transfer - Receiver")
 
     transfer_label = tk.Label(receiver_screen, text="Transfer Log:")
     transfer_label.pack()
@@ -346,7 +346,7 @@ def open_login_screen():
 
 # Main interface for user options
 main_screen = tk.Tk()
-main_screen.title("Money Transfer Application")
+main_screen.title("Kasrawy Transfer Application")
 
 register_btn = tk.Button(main_screen, text="Register", command=open_register_screen)
 register_btn.pack()
