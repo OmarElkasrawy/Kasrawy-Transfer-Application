@@ -4,7 +4,7 @@ from Crypto.Random import get_random_bytes
 import base64
 
 # AES_KEY must be consistent for both encryption and decryption
-AES_KEY = b'\x02\xee\xa5\xc0\xbcv\xed;\xe7\x9f\x95\xc7\xeb&\xb94'  # Example: 16 bytes (128-bit) key for testing
+AES_KEY = b'\x02\xee\xa5\xc0\xbcv\xed;\xe7\x9f\x95\xc7\xeb&\xb94'  # 16 bytes (128 bits)
 
 def encrypt_data(data: str) -> str:
     """Encrypts the data using AES CBC mode and returns it as a base64 string."""
