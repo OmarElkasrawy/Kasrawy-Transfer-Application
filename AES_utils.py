@@ -1,6 +1,6 @@
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import pad, unpad
-from Crypto.Random import get_random_bytes
+from Crypto.Random import get_random_bytes # null
 import base64
 
 # AES_KEY must be consistent for both encryption and decryption
