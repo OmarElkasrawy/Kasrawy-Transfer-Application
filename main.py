@@ -22,7 +22,7 @@ PERSONAL_DETAILS_FILE = "personal_data.txt"
 TRANSFER_LOG = "transfers.txt"
 
 active_user = None  # Track the currently logged-in user
-is_admin = False  # Track if the logged-in user is an admin (DEPRECATED)
+is_admin = False  # Track if the logged-in user is an admin (null)
 
 # Connect to the server
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
