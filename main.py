@@ -10,6 +10,8 @@ import base64
 import socket
 import os
 
+"""SHOWCASE UPDATE"""
+
 # Server settings
 SERVER_HOST = '127.0.0.1'
 SERVER_PORT = 57329
